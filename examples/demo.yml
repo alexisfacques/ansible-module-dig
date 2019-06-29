@@ -1,0 +1,39 @@
+- hosts: localhost
+  tasks:
+    - name: This should return '127.0.0.1' from your local '/etc/hosts' file
+      dig:
+        name: localhost
+        with_etc_hosts: true
+
+    - name: This should pass given your local resolv config is valid
+      dig:
+        qtype: A
+        name: google.com
+
+    - name: This should pass given your are connected to the Internet
+      dig:
+        nameserver: "8.8.8.8"
+        qtype: A
+        name:
+          - google.com
+
+    - name: This should pass as lists also work
+      dig:
+        nameserver:
+          - "8.8.8.8"
+        qtype: A
+        name:
+          - "google.com"
+          - "amazon.com"
+      register: dig_result
+
+    - name: Print dig output
+      debug:
+        var: dig_result
+        # Should output:
+        # dig_result.addresses = [[addresses_of_google], [addresses_of_amazon]]
+
+    - name: This should fail
+      dig:
+        qtype: A
+        name: "thisshouldfail.foo"
